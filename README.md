@@ -1,1 +1,2 @@
 # e-Wallet
+An e-wallet application (with four micro-services) that provides a payment/transaction service to the users and allows to create users with auto-wallet-creation feature with notification service through Kafka events.
