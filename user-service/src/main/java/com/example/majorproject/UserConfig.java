@@ -28,8 +28,8 @@ public class UserConfig {
 
         RedisStandaloneConfiguration redisStandaloneConfiguration =
                 new RedisStandaloneConfiguration(
-                        "redis-17394.c305.ap-south-1-1.ec2.cloud.redislabs.com", 17394);
-        redisStandaloneConfiguration.setPassword("QfYD2b2JsQ1Of9GtOoK9Ln2KQ24mWWJ7");
+                        "redis-19905.c212.ap-south-1-1.ec2.cloud.redislabs.com", 19905);
+        redisStandaloneConfiguration.setPassword("Redis@123");
         LettuceConnectionFactory lettuceConnectionFactory =
                 new LettuceConnectionFactory(redisStandaloneConfiguration);
         return lettuceConnectionFactory;
