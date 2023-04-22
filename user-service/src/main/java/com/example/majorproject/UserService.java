@@ -35,13 +35,15 @@ public class UserService {
         User user = userCacheRepository.getUser(userId);
         if(user == null){
             user = userRepository.findByUserId(userId);
+
+            if(user != null)
             userCacheRepository.addUser(user);
         }
 
         return user;
     }
 
-    public void addUser(UserCreateRequest userCreateRequest) throws JsonProcessingException {
+    public String addUser(UserCreateRequest userCreateRequest) throws JsonProcessingException {
 
 //        user.setPassword(passwordEncoder.encode(user.getPassword()));
           User user = User.builder()
@@ -53,15 +55,36 @@ public class UserService {
                   .authorities("usr")
                   .password(userCreateRequest.getPassword())
                   .build();
-        userRepository.save(user);
-        userCacheRepository.addUser(user);
 
-        //TODO: PUBLISH KAFKA EVENT FOR USER_CREATE
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("userId", user.getUserId());
-        jsonObject.put("amount", AMOUNT);
-        jsonObject.put("auditId", UUID.randomUUID().toString());
-        kafkaTemplate.send(USER_CREATE_TOPIC, objectMapper.writeValueAsString(jsonObject));
+        User userSaved = userRepository.findByUserId(userCreateRequest.getUserId());
+
+        String userCreateMessage = "User creation pending";
+        if(userSaved == null)
+        {
+            userRepository.save(user);
+            userCacheRepository.addUser(user);
+
+
+            //TODO: PUBLISH KAFKA EVENT FOR USER_CREATE
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("userId", user.getUserId());
+            jsonObject.put("amount", AMOUNT);
+            jsonObject.put("auditId", UUID.randomUUID().toString());
+            userCreateMessage = "User created successfully but wallet creation is pending";
+
+            kafkaTemplate.send(USER_CREATE_TOPIC, objectMapper.writeValueAsString(jsonObject));
+            userCreateMessage = "User created successfully with wallet";
+
+
+        }
+
+        else
+        {
+            userCreateMessage = "User creation failed. User with the given userId already exists";
+        }
+
+
+        return userCreateMessage;
 
         // make an entry in kafka_audit_log // time + service name
     }

@@ -4,9 +4,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.net.URI;
 
 @Service
 public class WalletService {
@@ -16,6 +22,8 @@ public class WalletService {
     private static final String WALLET_UPDATED = "wallet_update";
 
     @Autowired
+    RestTemplate restTemplate;
+    @Autowired
     KafkaTemplate<String, String> kafkaTemplate;
 
     @Autowired
@@ -23,6 +31,7 @@ public class WalletService {
 
     @Autowired
     ObjectMapper objectMapper;
+
 
 
     @KafkaListener(topics = {USER_CREATE_TOPIC}, groupId = "jbdl-15")
@@ -57,7 +66,8 @@ public class WalletService {
         transactionUpdateRequest.put("amount", amount);
 
         Wallet fromWallet = walletRepository.findByUserId(fromUser);
-        if(fromWallet == null || fromWallet.getBalance() - amount < 0){
+
+        if((fromWallet == null) || fromWallet.getBalance() - amount < 0){
             // fail the transaction
             transactionUpdateRequest.put("status", "FAILED");
         }else {
